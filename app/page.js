@@ -28,18 +28,36 @@ export default function Home() {
     if (data) setWords(data)
   }
 
+  
   async function addWord() {
-    if (!newWord.trim()) return
-    setLoading(true)
+  if (!newWord.trim()) return
+  setLoading(true)
+
+  try {
+    const enrichRes = await fetch('/api/enrich', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ word: newWord.trim() })
+    })
+    const enriched = await enrichRes.json()
+
     const { data: { user } } = await supabase.auth.getUser()
     await supabase.from('words').insert({
       word: newWord.trim(),
+      definition: enriched.definition,
+      example_sentence: enriched.example_sentence,
+      synonyms: enriched.synonyms,
       user_id: user.id
     })
+
     setNewWord('')
     await fetchWords()
-    setLoading(false)
+  } catch (err) {
+    console.error(err)
   }
+
+  setLoading(false)
+}
 
   async function handleLogout() {
     await supabase.auth.signOut()
@@ -86,13 +104,26 @@ export default function Home() {
             <p className="text-center text-gray-400 py-8">No words yet. Add your first word!</p>
           )}
           {words.map(w => (
-            <div key={w.id} className="bg-white rounded-xl shadow-sm p-5">
-              <p className="text-xl font-semibold text-gray-800 capitalize">{w.word}</p>
-              <p className="text-sm text-gray-400 mt-1">
-                {new Date(w.created_at).toLocaleDateString()}
-              </p>
-            </div>
-          ))}
+  <div key={w.id} className="bg-white rounded-xl shadow-sm p-5">
+    <p className="text-xl font-semibold text-gray-800 capitalize">{w.word}</p>
+    {w.definition && (
+      <p className="text-gray-600 mt-2 text-sm">{w.definition}</p>
+    )}
+    {w.synonyms && (
+      <div className="flex gap-2 mt-3 flex-wrap">
+        {w.synonyms.map(s => (
+          <span key={s} className="bg-blue-50 text-blue-600 text-xs px-3 py-1 rounded-full">
+            {s}
+          </span>
+        ))}
+      </div>
+    )}
+    <p className="text-xs text-gray-400 mt-3">
+      {new Date(w.created_at).toLocaleDateString()}
+    </p>
+  </div>
+))}
+          
         </div>
 
       </div>

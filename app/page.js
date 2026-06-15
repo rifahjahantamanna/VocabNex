@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 
 export default function Home() {
   const [words, setWords] = useState([])
@@ -104,24 +105,27 @@ export default function Home() {
             <p className="text-center text-gray-400 py-8">No words yet. Add your first word!</p>
           )}
           {words.map(w => (
-  <div key={w.id} className="bg-white rounded-xl shadow-sm p-5">
-    <p className="text-xl font-semibold text-gray-800 capitalize">{w.word}</p>
-    {w.definition && (
-      <p className="text-gray-600 mt-2 text-sm">{w.definition}</p>
-    )}
-    {w.synonyms && (
-      <div className="flex gap-2 mt-3 flex-wrap">
-        {w.synonyms.map(s => (
-          <span key={s} className="bg-blue-50 text-blue-600 text-xs px-3 py-1 rounded-full">
-            {s}
-          </span>
-        ))}
-      </div>
-    )}
-    <p className="text-xs text-gray-400 mt-3">
-      {new Date(w.created_at).toLocaleDateString()}
-    </p>
-  </div>
+  <Link href={`/words/${w.id}`} key={w.id}>
+    <div className="bg-white rounded-xl shadow-sm p-5 hover:shadow-md transition cursor-pointer">
+      <p className="text-xl font-semibold text-gray-800 capitalize">{w.word}</p>
+      {w.definition && (
+        <p className="text-gray-600 mt-2 text-sm line-clamp-2">{w.definition}</p>
+      )}
+      {w.synonyms && (
+        <div className="flex gap-2 mt-3 flex-wrap">
+          {w.synonyms.map(s => (
+            <span key={s} className="bg-blue-50 text-blue-600 text-xs px-3 py-1 rounded-full">
+              {s}
+            </span>
+          ))}
+        </div>
+      )}
+      <p className="text-xs text-gray-400 mt-3">
+        {new Date(w.created_at).toLocaleDateString()}
+      </p>
+    </div>
+  </Link>
+
 ))}
           
         </div>

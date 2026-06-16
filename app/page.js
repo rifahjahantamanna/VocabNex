@@ -29,36 +29,31 @@ export default function Home() {
     if (data) setWords(data)
   }
 
-  
   async function addWord() {
-  if (!newWord.trim()) return
-  setLoading(true)
-
-  try {
-    const enrichRes = await fetch('/api/enrich', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ word: newWord.trim() })
-    })
-    const enriched = await enrichRes.json()
-
-    const { data: { user } } = await supabase.auth.getUser()
-    await supabase.from('words').insert({
-      word: newWord.trim(),
-      definition: enriched.definition,
-      example_sentence: enriched.example_sentence,
-      synonyms: enriched.synonyms,
-      user_id: user.id
-    })
-
-    setNewWord('')
-    await fetchWords()
-  } catch (err) {
-    console.error(err)
+    if (!newWord.trim()) return
+    setLoading(true)
+    try {
+      const enrichRes = await fetch('/api/enrich', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ word: newWord.trim() })
+      })
+      const enriched = await enrichRes.json()
+      const { data: { user } } = await supabase.auth.getUser()
+      await supabase.from('words').insert({
+        word: newWord.trim(),
+        definition: enriched.definition,
+        example_sentence: enriched.example_sentence,
+        synonyms: enriched.synonyms,
+        user_id: user.id
+      })
+      setNewWord('')
+      await fetchWords()
+    } catch (err) {
+      console.error(err)
+    }
+    setLoading(false)
   }
-
-  setLoading(false)
-}
 
   async function handleLogout() {
     await supabase.auth.signOut()
@@ -71,12 +66,15 @@ export default function Home() {
 
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-800">VocabNex</h1>
-          <button
-            onClick={handleLogout}
-            className="text-sm text-gray-500 hover:text-gray-700"
-          >
-            Logout
-          </button>
+          <div className="flex gap-4 items-center">
+            <Link href="/flashcards" className="text-sm text-blue-600 hover:underline">Flashcards</Link>
+            <button
+              onClick={handleLogout}
+              className="text-sm text-gray-500 hover:text-gray-700"
+            >
+              Logout
+            </button>
+          </div>
         </div>
 
         <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
@@ -105,29 +103,27 @@ export default function Home() {
             <p className="text-center text-gray-400 py-8">No words yet. Add your first word!</p>
           )}
           {words.map(w => (
-  <Link href={`/words/${w.id}`} key={w.id}>
-    <div className="bg-white rounded-xl shadow-sm p-5 hover:shadow-md transition cursor-pointer">
-      <p className="text-xl font-semibold text-gray-800 capitalize">{w.word}</p>
-      {w.definition && (
-        <p className="text-gray-600 mt-2 text-sm line-clamp-2">{w.definition}</p>
-      )}
-      {w.synonyms && (
-        <div className="flex gap-2 mt-3 flex-wrap">
-          {w.synonyms.map(s => (
-            <span key={s} className="bg-blue-50 text-blue-600 text-xs px-3 py-1 rounded-full">
-              {s}
-            </span>
+            <Link href={`/words/${w.id}`} key={w.id}>
+              <div className="bg-white rounded-xl shadow-sm p-5 hover:shadow-md transition cursor-pointer">
+                <p className="text-xl font-semibold text-gray-800 capitalize">{w.word}</p>
+                {w.definition && (
+                  <p className="text-gray-600 mt-2 text-sm line-clamp-2">{w.definition}</p>
+                )}
+                {w.synonyms && (
+                  <div className="flex gap-2 mt-3 flex-wrap">
+                    {w.synonyms.map(s => (
+                      <span key={s} className="bg-blue-50 text-blue-600 text-xs px-3 py-1 rounded-full">
+                        {s}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <p className="text-xs text-gray-400 mt-3">
+                  {new Date(w.created_at).toLocaleDateString()}
+                </p>
+              </div>
+            </Link>
           ))}
-        </div>
-      )}
-      <p className="text-xs text-gray-400 mt-3">
-        {new Date(w.created_at).toLocaleDateString()}
-      </p>
-    </div>
-  </Link>
-
-))}
-          
         </div>
 
       </div>

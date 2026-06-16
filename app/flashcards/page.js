@@ -9,11 +9,15 @@ export default function FlashcardsPage() {
   const [current, setCurrent] = useState(0)
   const [flipped, setFlipped] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [done, setDone] = useState(false)
+  const [score, setScore] = useState({ knew: 0, didnt: 0 })
+  const [userId, setUserId] = useState(null)
   const supabase = createClient()
 
   useEffect(() => {
     async function fetchWords() {
       const { data: { user } } = await supabase.auth.getUser()
+      setUserId(user.id)
       const { data } = await supabase
         .from('words')
         .select('*')
@@ -29,14 +33,33 @@ export default function FlashcardsPage() {
     setFlipped(!flipped)
   }
 
-  function handleNext() {
-    setFlipped(false)
-    setTimeout(() => setCurrent(c => Math.min(c + 1, words.length - 1)), 150)
+  async function handleResult(knewIt) {
+    const word = words[current]
+
+    await supabase.from('reviews').insert({
+      word_id: word.id,
+      user_id: userId,
+      knew_it: knewIt
+    })
+
+    setScore(s => ({
+      knew: knewIt ? s.knew + 1 : s.knew,
+      didnt: !knewIt ? s.didnt + 1 : s.didnt
+    }))
+
+    if (current + 1 >= words.length) {
+      setDone(true)
+    } else {
+      setFlipped(false)
+      setTimeout(() => setCurrent(c => c + 1), 150)
+    }
   }
 
-  function handlePrev() {
+  function handleRestart() {
+    setCurrent(0)
     setFlipped(false)
-    setTimeout(() => setCurrent(c => Math.max(c - 1, 0)), 150)
+    setDone(false)
+    setScore({ knew: 0, didnt: 0 })
   }
 
   if (loading) return (
@@ -50,6 +73,34 @@ export default function FlashcardsPage() {
       <div className="text-center">
         <p className="text-gray-400 mb-4">No words yet!</p>
         <Link href="/" className="text-blue-600 hover:underline">Add some words first</Link>
+      </div>
+    </div>
+  )
+
+  if (done) return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="bg-white rounded-2xl shadow-md p-10 text-center max-w-md w-full">
+        <h2 className="text-3xl font-bold text-gray-800 mb-2">Session Complete!</h2>
+        <p className="text-gray-400 mb-8">You reviewed {words.length} words</p>
+
+        <div className="flex justify-center gap-6 mb-8">
+          <div className="bg-green-50 rounded-xl p-5 w-28">
+            <p className="text-3xl font-bold text-green-600">{score.knew}</p>
+            <p className="text-sm text-green-500 mt-1">Knew it</p>
+          </div>
+          <div className="bg-red-50 rounded-xl p-5 w-28">
+            <p className="text-3xl font-bold text-red-500">{score.didnt}</p>
+            <p className="text-sm text-red-400 mt-1">Didn't know</p>
+          </div>
+        </div>
+
+        <button
+          onClick={handleRestart}
+          className="w-full bg-blue-600 text-white py-3 rounded-xl font-medium hover:bg-blue-700 transition mb-3"
+        >
+          Study Again
+        </button>
+        <Link href="/" className="text-sm text-gray-400 hover:underline">Back to words</Link>
       </div>
     </div>
   )
@@ -80,7 +131,6 @@ export default function FlashcardsPage() {
               height: '280px'
             }}
           >
-            {/* Front */}
             <div
               style={{ backfaceVisibility: 'hidden' }}
               className="absolute inset-0 bg-white rounded-2xl shadow-md flex flex-col items-center justify-center p-8"
@@ -90,7 +140,6 @@ export default function FlashcardsPage() {
               <p className="text-sm text-gray-400 mt-6">Click to reveal definition</p>
             </div>
 
-            {/* Back */}
             <div
               style={{
                 backfaceVisibility: 'hidden',
@@ -107,28 +156,26 @@ export default function FlashcardsPage() {
           </div>
         </div>
 
-        <div className="flex justify-between items-center mt-8">
-          <button
-            onClick={handlePrev}
-            disabled={current === 0}
-            className="px-6 py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-100 transition disabled:opacity-30"
-          >
-            ← Prev
-          </button>
-          <button
-            onClick={handleFlip}
-            className="px-6 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition"
-          >
-            {flipped ? 'Hide' : 'Reveal'}
-          </button>
-          <button
-            onClick={handleNext}
-            disabled={current === words.length - 1}
-            className="px-6 py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-100 transition disabled:opacity-30"
-          >
-            Next →
-          </button>
-        </div>
+        {!flipped ? (
+          <div className="mt-8 text-center">
+            <p className="text-gray-400 text-sm">Flip the card first to reveal the definition</p>
+          </div>
+        ) : (
+          <div className="flex justify-center gap-4 mt-8">
+            <button
+              onClick={() => handleResult(false)}
+              className="flex-1 py-3 rounded-xl border-2 border-red-200 text-red-500 font-medium hover:bg-red-50 transition"
+            >
+              ✗ Didn't Know
+            </button>
+            <button
+              onClick={() => handleResult(true)}
+              className="flex-1 py-3 rounded-xl border-2 border-green-200 text-green-600 font-medium hover:bg-green-50 transition"
+            >
+              ✓ Knew It
+            </button>
+          </div>
+        )}
 
       </div>
     </div>

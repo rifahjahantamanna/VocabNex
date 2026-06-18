@@ -68,6 +68,7 @@ export default function Home() {
           <h1 className="text-3xl font-bold text-gray-800">VocabNex</h1>
           
           <div className="flex gap-4 items-center">
+            <Link href="/dashboard" className="text-sm text-blue-600 hover:underline">Dashboard</Link>
             <Link href="/flashcards" className="text-sm text-blue-600 hover:underline">Flashcards</Link>
             <Link href="/quiz" className="text-sm text-blue-600 hover:underline">Quiz</Link>
   <button

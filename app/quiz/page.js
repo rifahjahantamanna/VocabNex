@@ -24,9 +24,9 @@ export default function QuizPage() {
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
       const validWords = data.filter(w => w.definition && w.definition !== 'null')
-       if (validWords.length >= 4) {
-             setWords(validWords)
-             generateQuestion(data, 0)
+      if (validWords.length >= 4) {
+        setWords(validWords)
+        generateQuestion(validWords, 0)
       }
       setLoading(false)
     }
@@ -65,49 +65,51 @@ export default function QuizPage() {
   }
 
   async function handleNext() {
-  if (current + 1 >= words.length) {
-    const { data: { user } } = await supabase.auth.getUser()
-    await supabase.from('quiz_scores').insert({
-      user_id: user.id,
-      score: score + (selected === question.correct ? 1 : 0),
-      total: words.length
-    })
-    setDone(true)
-  } else {
-    const next = current + 1
-    setCurrent(next)
-    await new Promise(r => setTimeout(r, 15000))
-    generateQuestion(words, next)
+    if (current + 1 >= words.length) {
+      const { data: { user } } = await supabase.auth.getUser()
+      await supabase.from('quiz_scores').insert({
+        user_id: user.id,
+        score: score + (selected === question.correct ? 1 : 0),
+        total: words.length
+      })
+      setDone(true)
+    } else {
+      const next = current + 1
+      setCurrent(next)
+      await new Promise(r => setTimeout(r, 15000))
+      generateQuestion(words, next)
+    }
   }
-}
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center">
-      <p className="text-gray-400">Loading quiz...</p>
+    <div className="min-h-screen flex items-center justify-center" style={{ background: '#0f0f13' }}>
+      <p style={{ color: '#6b6b80' }}>Loading quiz...</p>
     </div>
   )
 
   if (words.length < 4) return (
-    <div className="min-h-screen flex items-center justify-center">
+    <div className="min-h-screen flex items-center justify-center" style={{ background: '#0f0f13' }}>
       <div className="text-center">
-        <p className="text-gray-400 mb-2">You need at least 4 words to take a quiz!</p>
-        <Link href="/" className="text-blue-600 hover:underline">Add more words</Link>
+        <p className="text-5xl mb-4">📝</p>
+        <p className="mb-2" style={{ color: '#6b6b80' }}>You need at least 4 words to take a quiz!</p>
+        <Link href="/" className="text-indigo-400 hover:text-indigo-300">Add more words</Link>
       </div>
     </div>
   )
 
   if (done) return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="bg-white rounded-2xl shadow-md p-10 text-center max-w-md w-full">
-        <h2 className="text-3xl font-bold text-gray-800 mb-2">Quiz Complete!</h2>
-        <p className="text-gray-400 mb-8">You answered {words.length} questions</p>
+    <div className="min-h-screen flex items-center justify-center" style={{ background: '#0f0f13' }}>
+      <div className="rounded-2xl p-10 text-center max-w-md w-full" style={{ background: '#1a1a24', border: '1px solid #2a2a38' }}>
+        <p className="text-5xl mb-4">🏆</p>
+        <h2 className="text-3xl font-bold text-white mb-2">Quiz Complete!</h2>
+        <p className="mb-8" style={{ color: '#6b6b80' }}>You answered {words.length} questions</p>
 
-        <div className="bg-blue-50 rounded-xl p-6 mb-8">
-          <p className="text-5xl font-bold text-blue-600">{score}/{words.length}</p>
-          <p className="text-blue-400 mt-2">
+        <div className="rounded-xl p-6 mb-8" style={{ background: '#1e1b4b' }}>
+          <p className="text-5xl font-bold text-indigo-400">{score}/{words.length}</p>
+          <p className="mt-2" style={{ color: '#818cf8' }}>
             {Math.round((score / words.length) * 100)}% correct
           </p>
-          <p className="text-blue-400 mt-1">
+          <p className="mt-1 text-sm" style={{ color: '#818cf8' }}>
             {score === words.length ? 'Perfect score! 🎉' :
              score >= words.length / 2 ? 'Good job! Keep studying 💪' :
              'Keep practicing! You\'ll get there 📚'}
@@ -116,7 +118,8 @@ export default function QuizPage() {
 
         <Link
           href="/"
-          className="block w-full bg-blue-600 text-white py-3 rounded-xl font-medium hover:bg-blue-700 transition text-center"
+          className="block w-full py-3 rounded-xl font-semibold text-white hover:opacity-90 transition text-center"
+          style={{ background: '#4f46e5' }}
         >
           Back to words
         </Link>
@@ -125,44 +128,47 @@ export default function QuizPage() {
   )
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen" style={{ background: '#0f0f13' }}>
       <div className="max-w-2xl mx-auto px-4 py-8">
 
-        <div className="flex justify-between items-center mb-8">
-          <Link href="/" className="text-blue-600 text-sm hover:underline">← Back</Link>
-          <h1 className="text-xl font-bold text-gray-800">Quiz</h1>
-          <p className="text-sm text-gray-400">{current + 1} / {words.length}</p>
+        <div className="flex justify-between items-center mb-10">
+          <Link href="/" className="text-sm hover:text-white transition" style={{ color: '#6b6b80' }}>← Back</Link>
+          <h1 className="text-xl font-bold text-white">Quiz</h1>
+          <p className="text-sm" style={{ color: '#6b6b80' }}>{current + 1} / {words.length}</p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-md p-8 mb-6">
+        <div className="rounded-2xl p-8 mb-6" style={{ background: '#1a1a24', border: '1px solid #2a2a38' }}>
           {generating ? (
-           <div className="flex flex-col items-center justify-center h-40 gap-3">
-           <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"/>
-           <p className="text-gray-400 text-sm">AI is generating your question...</p>
-           <p className="text-gray-300 text-xs">This may take a few seconds</p>
-          </div>
+            <div className="flex flex-col items-center justify-center h-40 gap-3">
+              <div className="w-8 h-8 border-4 border-indigo-900 border-t-indigo-400 rounded-full animate-spin"/>
+              <p className="text-sm" style={{ color: '#6b6b80' }}>AI is generating your question...</p>
+              <p className="text-xs" style={{ color: '#3d3d50' }}>This may take a few seconds</p>
+            </div>
           ) : question ? (
             <>
-              <p className="text-xs text-gray-400 uppercase tracking-wide mb-3">Question {current + 1}</p>
-              <p className="text-xl font-semibold text-gray-800 mb-8">{question.question}</p>
+              <p className="text-xs uppercase tracking-widest mb-3" style={{ color: '#6b6b80' }}>Question {current + 1}</p>
+              <p className="text-xl font-semibold text-white mb-8">{question.question}</p>
 
               <div className="space-y-3">
                 {(question.options || []).map((option, i) => {
-                  let style = 'border-2 border-gray-100 text-gray-700 hover:border-blue-300 hover:bg-blue-50'
+                  let bg = '#0f0f13'
+                  let border = '#2a2a38'
+                  let color = '#9090a8'
+
                   if (selected) {
                     if (option === question.correct) {
-                      style = 'border-2 border-green-400 bg-green-50 text-green-700'
+                      bg = '#0f2a1a'; border = '#14532d'; color = '#4ade80'
                     } else if (option === selected) {
-                      style = 'border-2 border-red-300 bg-red-50 text-red-600'
-                    } else {
-                      style = 'border-2 border-gray-100 text-gray-400'
+                      bg = '#2a0f0f'; border = '#7f1d1d'; color = '#f87171'
                     }
                   }
+
                   return (
                     <button
                       key={i}
                       onClick={() => handleAnswer(option)}
-                      className={`w-full text-left px-5 py-4 rounded-xl transition font-medium ${style}`}
+                      className="w-full text-left px-5 py-4 rounded-xl transition font-medium"
+                      style={{ background: bg, border: `1px solid ${border}`, color }}
                     >
                       {option}
                     </button>
@@ -175,13 +181,14 @@ export default function QuizPage() {
 
         {selected && (
           <button
-           onClick={handleNext}
-           disabled={generating}
-           className="w-full bg-blue-600 text-white py-3 rounded-xl font-medium hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-          {generating ? 'Loading next question...' : current + 1 >= words.length ? 'See Results' : 'Next Question →'}
-        </button>
-)}
+            onClick={handleNext}
+            disabled={generating}
+            className="w-full py-3 rounded-xl font-semibold text-white hover:opacity-90 transition disabled:opacity-40 disabled:cursor-not-allowed"
+            style={{ background: '#4f46e5' }}
+          >
+            {generating ? 'Loading next question...' : current + 1 >= words.length ? 'See Results' : 'Next Question →'}
+          </button>
+        )}
 
       </div>
     </div>

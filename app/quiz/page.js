@@ -66,6 +66,12 @@ export default function QuizPage() {
 
   async function handleNext() {
   if (current + 1 >= words.length) {
+    const { data: { user } } = await supabase.auth.getUser()
+    await supabase.from('quiz_scores').insert({
+      user_id: user.id,
+      score: score + (selected === question.correct ? 1 : 0),
+      total: words.length
+    })
     setDone(true)
   } else {
     const next = current + 1
@@ -99,6 +105,9 @@ export default function QuizPage() {
         <div className="bg-blue-50 rounded-xl p-6 mb-8">
           <p className="text-5xl font-bold text-blue-600">{score}/{words.length}</p>
           <p className="text-blue-400 mt-2">
+            {Math.round((score / words.length) * 100)}% correct
+          </p>
+          <p className="text-blue-400 mt-1">
             {score === words.length ? 'Perfect score! 🎉' :
              score >= words.length / 2 ? 'Good job! Keep studying 💪' :
              'Keep practicing! You\'ll get there 📚'}
@@ -127,9 +136,11 @@ export default function QuizPage() {
 
         <div className="bg-white rounded-2xl shadow-md p-8 mb-6">
           {generating ? (
-            <div className="flex items-center justify-center h-24">
-              <p className="text-gray-400 animate-pulse">Generating question...</p>
-            </div>
+           <div className="flex flex-col items-center justify-center h-40 gap-3">
+           <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"/>
+           <p className="text-gray-400 text-sm">AI is generating your question...</p>
+           <p className="text-gray-300 text-xs">This may take a few seconds</p>
+          </div>
           ) : question ? (
             <>
               <p className="text-xs text-gray-400 uppercase tracking-wide mb-3">Question {current + 1}</p>
@@ -164,12 +175,13 @@ export default function QuizPage() {
 
         {selected && (
           <button
-            onClick={handleNext}
-            className="w-full bg-blue-600 text-white py-3 rounded-xl font-medium hover:bg-blue-700 transition"
-          >
-            {current + 1 >= words.length ? 'See Results' : 'Next Question →'}
-          </button>
-        )}
+           onClick={handleNext}
+           disabled={generating}
+           className="w-full bg-blue-600 text-white py-3 rounded-xl font-medium hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+          {generating ? 'Loading next question...' : current + 1 >= words.length ? 'See Results' : 'Next Question →'}
+        </button>
+)}
 
       </div>
     </div>

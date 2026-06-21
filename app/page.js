@@ -117,9 +117,14 @@ export default function Home() {
                   <p className="text-xl font-bold text-white capitalize">{w.word}</p>
                   <p className="text-xs" style={{ color: '#6b6b80' }}>{new Date(w.created_at).toLocaleDateString()}</p>
                 </div>
-                {w.definition && (
-                  <p className="mt-2 text-sm line-clamp-2" style={{ color: '#9090a8' }}>{w.definition}</p>
-                )}
+                {w.definition ? (
+               <p className="mt-2 text-sm line-clamp-2" style={{ color: '#9090a8' }}>{w.definition}</p>
+                 ) : (
+               <span className="mt-2 inline-block text-xs px-2 py-1 rounded-full" style={{ background: '#2a1a0f', color: '#f97316' }}>
+                No definition — click to regenerate
+                </span>
+)}
+                
                 {w.synonyms && (
                   <div className="flex gap-2 mt-3 flex-wrap">
                     {w.synonyms.map(s => (

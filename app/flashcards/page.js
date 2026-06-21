@@ -23,7 +23,7 @@ export default function FlashcardsPage() {
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
-      if (data) setWords(data)
+      if (data) setWords(data.filter(w => w.definition && w.definition !== 'null'))
       setLoading(false)
     }
     fetchWords()
